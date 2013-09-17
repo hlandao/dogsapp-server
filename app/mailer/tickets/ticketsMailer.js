@@ -1,0 +1,1 @@
+module.exports.newTicketMailer = require('./new_ticket_mailer.js');

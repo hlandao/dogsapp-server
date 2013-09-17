@@ -1,0 +1,17 @@
+!!! 5
+html
+head
+    title Error 500 - Appstrio
+    meta(content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no', name='viewport')
+    meta(content='text/html;charset=utf-8', http-equiv='content-type')
+    link#color-settings-body-color(href='#{realm}/public/css/flatty/light-theme.min.css', media='all', rel='stylesheet', type='text/css')
+    body.contrast-blue.application-error.500-error.contrast-background
+        #wrapper(style='position: fixed; top: 50%; left: 50%; margin-top: -50px; margin-left: -180px;')
+            .error-type(style='height:80px;')
+                i.icon-cogs(style='height:80px;')
+                span 500
+            .error-message
+                | Ooops! Something went wrong.
+                br
+                | Error : #{err.message}
+
