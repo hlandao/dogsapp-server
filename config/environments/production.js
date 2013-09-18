@@ -5,7 +5,7 @@ module.exports = function () {
     this.set('realm', 'http://kidsaver.herokuapp.com');
 
 
-    this.set('db-uri', ' mongodb://hlandao:hlbbxp12@ds045938.mongolab.com:45938/heroku_app18091722');
+    this.set('db-uri', 'mongodb://hlandao:hlbbxp12@ds045938.mongolab.com:45938/heroku_app18091722');
     this.set('view options', {
         pretty: true
     });
