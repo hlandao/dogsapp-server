@@ -1,0 +1,2 @@
+<section data-ng-controller="ClientsController" data-ng-init="findOne()"><span>{{place.created | date:'medium'}}
+/<span>{{place.user.name}}</span><h2>{{place.title}}<a data-ng-show="global.user._id == place.user._id" href="/#!/articles/{{article._id}}/edit">edit</a></h2><div>{{place.content}}</div></span></section>

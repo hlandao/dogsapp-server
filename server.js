@@ -1,55 +1,50 @@
-//for new relic
-//require('newrelic');
+/**
+ * Module dependencies.
+ */
+var express = require('express'),
+    fs = require('fs'),
+    passport = require('passport'),
+    logger = require('mean-logger');
 
-var locomotive = require('locomotive'),
-    env = process.env.NODE_ENV || 'development',
-    port = process.env.PORT || 3000,
-    address = '0.0.0.0';
+/**
+ * Main application entry file.
+ * Please note that the order of loading is important.
+ */
 
+//Load configurations
+//if test env, load example file
+var env = process.env.NODE_ENV || 'development',
+    config = require('./config/config')[env],
+    auth = require('./config/middlewares/authorization'),
+    mongoose = require('mongoose');
 
-locomotive.boot(__dirname, env, function (err, server) {
-    if (err) {
-        throw err;
-    }
-    server.listen(port, address, function () {
-        var addr = this.address();
+//Bootstrap db connection
+var db = mongoose.connect(config.db);
 
-        console.log('listening on %s:%d', addr.address, addr.port);
-    });
+//Bootstrap models
+var models_path = __dirname + '/app/models';
+fs.readdirSync(models_path).forEach(function(file) {
+    require(models_path + '/' + file);
 });
 
-//catch uncought errors
-process.on('uncaughtException', function (err) {
-    locomotive.logger.error('server uncaughtException:', err.message, process.uptime());
-    console.error((new Date()).toUTCString() + ' uncaughtException:', err.message);
-    console.error(err.stack);
+//bootstrap passport config
+require('./config/passport')(passport, config);
 
-    console.log('\n\n\n\n' + process.uptime() + 'uptime\n\n\n\n');
+var app = express();
 
-    if (process.uptime() > 1000) {
-        console.log('restart');
-        //toobusy.shutdown();
-        process.exit(1);
-    }
-});
+//express settings
+require('./config/express')(app, config, passport);
 
+//Bootstrap routes
+require('./config/routes')(app, passport, auth);
 
-var cronJob = require('cron').CronJob;
-var util = require('util');
+//Start the app by listening on <port>
+var port = process.env.PORT || 3000;
+app.listen(port);
+console.log('Express app started on port ' + port);
 
+//Initializing logger 
+logger.init(app, passport, mongoose);
 
-//to avoid memory leaks kill dyno once in 2 hours
-var refreshProcess = new cronJob('00 01 */2 * * 1-7', function () {
-        var randTime = Math.random() * 120000;
-        setTimeout(function () {
-            //close proccess for refresh
-            locomotive.logger.warn('2 hours refresh ', {pid: process.pid, uptime: process.uptime(), memory: util.inspect(process.memoryUsage())});
-            process.exit(1);
-        }, randTime);
-    }, function () {
-        // This function is executed when the job stops
-    },
-    true /* Start the job right now */
-);
-
-
+//expose app
+exports = module.exports = app;

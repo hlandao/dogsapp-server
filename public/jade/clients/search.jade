@@ -1,0 +1,22 @@
+section(data-ng-controller='ClientsController')
+    form.form-horizontal(data-ng-submit='search()')
+        .control-group
+            label.control-label(for='title') Location
+            .controls
+                input#title(type='text', data-ng-model='city', placeholder='City')
+        .control-group
+            label.control-label(for='content') Kind
+            .controls
+                input#title(type='text', data-ng-model='kind', placeholder='Kind')
+
+        .control-group
+            .controls
+                input.btn(type='submit')
+
+    div(loading-container='loading')
+        table.table(ng-table='tableParams')
+            tr(ng-repeat='place in places')
+                td(data-title="'Icon'")
+                    img(ng-src="{{place.icon}}", style="width:50px;height:50px;")
+                td(data-title="'Name'", sortable="name")
+                    | {{place.name}}

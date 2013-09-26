@@ -1,0 +1,10 @@
+section(data-ng-controller='ClientsController', data-ng-init='find()')
+    table
+        tr
+            td ID
+            td User Email
+            td Created At
+        tr(ng-repeat='client in clients')
+            td {{ client._id }}
+            td {{client.user.email}}
+            td {{client.createdAt | date:'medium'}}

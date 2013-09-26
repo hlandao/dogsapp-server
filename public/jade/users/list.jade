@@ -1,0 +1,13 @@
+section(data-ng-controller='UsersController', data-ng-init='find()')
+    div(loading-container='loading')
+        table.table(ng-table='tableParams')
+            tr(ng-repeat='user in users')
+                td(data-title='\'Email\'', sortable='email')
+                    | {{user.email}}
+                td(data-title='\'Role\'', sortable='role')
+                    | {{user.role}}
+                td(data-title='\'Delete\'')
+                    button(ng-click='remove(user)') Delete
+        h4
+            br
+            a(href='/#!/users/create') Create User

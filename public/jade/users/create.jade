@@ -1,0 +1,13 @@
+section(data-ng-controller='UsersController')
+    form.form-horizontal(data-ng-submit='create()')
+        .control-group
+            label.control-label(for='title') Email
+            .controls
+                input#email(type='text', data-ng-model='email', placeholder='Email')
+        .control-group
+            label.control-label(for='content') Password
+            .controls
+                input#password(type='password', data-ng-model='password', placeholder='Password')
+        .control-group
+            .controls
+                input.btn(type='submit')

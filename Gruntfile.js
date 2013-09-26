@@ -1,80 +1,117 @@
-/*global module:false*/
-module.exports = function (grunt) {
-
-
-
-    // Project configuration.
+module.exports = function(grunt) {
+    // Project Configuration
     grunt.initConfig({
-            // Metadata.
-            pkg: grunt.file.readJSON('package.json'),
-
-            banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
-                '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-                '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
-                '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-                ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
-
-
-
+        pkg: grunt.file.readJSON('package.json'),
+        watch: {
+            html: {
+                files: ['public/views/**'],
+                options: {
+                    livereload: true,
+                    event: ['all'],
+                    atBegin: true
+                }
+            },
+            js: {
+                files: ['public/js/**'],
+                options: {
+                    livereload: true,
+                    event: ['all'],
+                    atBegin: true
+                }
+            },
+            css: {
+                files: ['public/less/**'],
+                tasks: ['less'],
+                options: {
+                    livereload: true,
+                    event: ['all'],
+                    atBegin: true
+                }
+            },
             jade: {
-                development: {
-                    options: {
-                        data: {
-                            debug: false
-                        }
+                files: ['public/jade/**'],
+                tasks: ['jade'],
+                options: {
+                    livereload: true,
+                    event: ['all'],
+                    atBegin: true
+                }
+            }
+        },
+        jshint: {
+            all: ['gruntfile.js']
+        },
+        less: { // Task
+            dev: { // Another target
+                files : [
+                    {
+                        expand: true,
+                        cwd: './public/less',
+                        dest: './public/css',
+                        src: '**/*.less',
+                        ext: '.css'
+
+
+                    }
+                ]
+
+            }
+        },
+        jade: { // Task
+            dev: { // Another target
+                files : [
+                    {
+                        expand: true,
+                        cwd: './public/jade',
+                        dest: './public/views',
+                        src: '**/*.jade',
+                        ext: '.html'
+                    }
+                ]
+
+            }
+        },
+        nodemon: {
+            dev: {
+                options: {
+                    file: 'server.js',
+                    args: [],
+                    ignoredFiles: ['README.md', 'node_modules/**', '.DS_Store'],
+                    watchedExtensions: ['js'],
+                    watchedFolders: ['app', 'config'],
+                    debug: true,
+                    delayTime: 1,
+                    env: {
+                        PORT: 3000
                     },
-                    files: [
-                        {
-                            expand: true,
-                            cwd: './public/partials/jade/',
-                            dest: './public/partials',
-                            src: '**/*.jade',
-                            ext: '.html'
-                        }
-                    ]
+                    cwd: __dirname
                 }
             },
-
-            less: {
-                development: {
-                    files: [
-                        {
-                            expand: true,
-                            cwd: './public/css/less',
-                            dest: './public/css',
-                            src: '*.less',
-                            ext: '.css'
-                        }
-                    ]
+            exec: {
+                options: {
+                    exec: 'less'
                 }
-            },
-
-            watch: {
-
-                jade: {
-                    files: ['./public/partials/jade/**/*.jade'],
-                    tasks: ["jade"],
-                    options: {
-                        event: ['all'],
-                        atBegin: true
-                    }
-                },
-
-                less: {
-                    files: ['./public/css/less/**/*.less'],
-                    tasks: ["less"],
-                    options: {
-                        event: ['all'],
-                        atBegin: true
-                    }
+            }
+        },
+        concurrent: {
+            target: {
+                tasks: ['nodemon', 'watch'],
+                options: {
+                    logConcurrentOutput: true
                 }
             }
         }
-    );
+    });
 
-
-    // These plugins provide necessary tasks.
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-jade');
+    // Load NPM tasks 
     grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-nodemon');
+    grunt.loadNpmTasks('grunt-concurrent');
+    grunt.loadNpmTasks('grunt-contrib-jade');
+
+
+    // Default task(s).
+    grunt.registerTask('default', ['jshint', 'less', 'concurrent:target']);
 };

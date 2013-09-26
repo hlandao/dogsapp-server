@@ -1,0 +1,1 @@
+<section data-ng-controller="ClientsController" data-ng-init="find()"><table><tr><td>ID</td><td>User Email</td><td>Created At</td></tr><tr ng-repeat="client in clients"><td>{{ client._id }}</td><td>{{client.user.email}}</td><td>{{client.createdAt | date:'medium'}}</td></tr></table></section>
