@@ -157,6 +157,7 @@ exports.destroy = function(req, res) {
  * Send User
  */
 exports.me = function(req, res) {
+    console.log('req.user',req.user);
     res.jsonp(req.user || null);
 };
 
