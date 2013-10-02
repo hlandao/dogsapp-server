@@ -16,32 +16,13 @@ exports.authCallback = function(req, res, next) {
     }
 };
 
-/**
- * Show login form
- */
-exports.signin = function(req, res) {
-    res.render('users/signin', {
-        title: 'Signin',
-        message: req.flash('error')
-    });
-};
-
-/**
- * Show sign up form
- */
-exports.signup = function(req, res) {
-    res.render('users/signup', {
-        title: 'Sign up',
-        user: new User()
-    });
-};
 
 /**
  * Logout
  */
 exports.signout = function(req, res) {
     req.logout();
-    res.redirect('/');
+    res.sned(200);
 };
 
 /**
@@ -68,9 +49,7 @@ exports.session = function(req, res, next) {
 exports.all = function(req,res,next){
     User.find(function(err, users) {
         if (err) {
-            res.render('error', {
-                status: 500
-            });
+            res.send(500);
         } else {
             res.jsonp(users);
         }
@@ -114,10 +93,7 @@ exports.create = function(req, res) {
 exports.show = function(req, res) {
     var user = req.profile;
 
-    res.render('users/show', {
-        title: user.name,
-        user: user
-    });
+    res.send(user);
 };
 
 
