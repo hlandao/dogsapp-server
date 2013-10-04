@@ -9,7 +9,6 @@ module.exports = function(){
         var tokenSecret = config.jwtToken.secret;
 
         if(req[property]) return next();
-        console.log('req.headers.access_token',req.headers.access_token);
         if(req.headers.access_token){
             var tokenObject = jwt.decode(req.headers.access_token, tokenSecret);
             if(Date.now() > tokenObject.expired){

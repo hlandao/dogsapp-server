@@ -65,6 +65,7 @@ module.exports = {
         jwtToken : {
             secret : '1234567',
             expiracy : 1000*3600*100
-        }
+        },
+        allowedDomains : ['http://localhost:8000']
     }
 };
