@@ -3,6 +3,9 @@
  */
 var mongoose = require('mongoose'),
     User = mongoose.model('User'),
+    IM = mongoose.model('IM'),
+    _ = require('underscore'),
+    async = require('async'),
     passport = require('passport');
 
 /**
@@ -22,7 +25,7 @@ exports.authCallback = function(req, res, next) {
  */
 exports.signout = function(req, res) {
     req.logout();
-    res.sned(200);
+    res.send(200);
 };
 
 /**
@@ -77,9 +80,15 @@ exports.create = function(req, res) {
        }
         user.save(function(err) {
             if (err) {
-                return res.send(400, err);
+                console.log('err',err);
+                return res.send(400, {error : err});
             }else{
-                return res.send(user);
+
+                return req.login(user, function (err) {
+                    if (err) return next(err);
+                    return res.send(user.loggedUser);
+                });
+
             }
 
         });
@@ -133,7 +142,6 @@ exports.destroy = function(req, res) {
  * Send User
  */
 exports.me = function(req, res) {
-    console.log('req.user',req.user);
     res.jsonp(req.user || null);
 };
 
@@ -151,4 +159,126 @@ exports.user = function(req, res, next, id) {
             req.profile = user;
             next();
         });
+};
+
+
+/**
+ * update my location
+ */
+exports.updateLocation = function(req, res){
+    var user = req.user;
+    var loc = req.body.loc;
+
+    user.setLocation(loc, function(err){
+       if(err){
+           console.log(err);
+           return res.send(400, {error : 'error in update location'});
+       }else{
+           // get around me
+           user.findNear({}, function(err, profiles){
+               if(err){
+                   console.log(err);
+                   return res.send(400, {error : 'error getting users around me'});
+               }else{
+                   IM.unNotifiedForUser(req.user._id, function(err, notifications){
+                       return res.send({aroundMe : profiles, notifications : notifications});
+                   });
+
+               }
+           });
+       }
+    });
+};
+
+/**
+ * get users around my last location or around ceratin location
+ */
+exports.aroundMe = function(req, res){
+    var loc = req.body.loc;
+    console.log('around me loc',loc);
+    var maxDistance = req.body.distance || 1;
+    var oldTimeout = req.body.oldTimeout || 1000 * 60 * 10000;
+
+    var user = req.user;
+
+    user.findNear({loc : loc, maxDistance : maxDistance, oldTimeout : oldTimeout}, function(err, profiles){
+        if(err){
+            console.log(err);
+            return res.send(400, {error : 'error getting users around me'});
+        }else{
+            return res.send(profiles);
+        }
+    });
+};
+
+
+/**
+ * send im message to another user
+ */
+exports.sendIM = function(req, res){
+    var message = new IM(req.body);
+    message.from = req.user._id;
+
+    User.findOne({_id : message.to}, function(err, toUser){
+        if(err){
+            return res.send(400,'Cannot find to user');
+        }else{
+            message.save(function(err){
+                if(err){
+                    return res.send(400,'Cannot save message');
+                }else{
+                    toUser.addToInbox(req.user, function(err){
+                        req.user.addToInbox(toUser, function(err){
+                            return res.send(message);
+                        });
+
+                    });
+                }
+            });
+
+        }
+
+
+    });
+
+};
+
+
+/**
+ * send im message to another user
+ */
+exports.chatHistory = function(req, res){
+    var withUser = req.body.withUser;
+
+    IM.findChatHistory(req.user._id, withUser, function(err, history){
+        if(err){
+            return res.send(400,'Cannot find chat history');
+        }else{
+            return res.send(history);
+        }
+    });
+
+};
+
+
+
+/**
+ * send im message to another user
+ */
+exports.inbox = function(req, res){
+    if(!req.user.inbox){
+        return res.send(200);
+    }
+
+    async.map(req.user.inbox, function(userId, cb){
+        User.findOne({_id : userId}, function(err, _user){
+           if(err) return cb(err);
+           return cb(null, _user.profile);
+        })
+    }, function(err, profiles){
+       if(err) return res.send(500, {error : 'Cannot get inbox'});
+        res.send(profiles);
+    });
+
+
 };

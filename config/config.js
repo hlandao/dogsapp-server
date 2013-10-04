@@ -3,10 +3,10 @@ var path = require('path'),
 
 module.exports = {
     development: {
-        db: 'mongodb://localhost/kid-saver-dev',
+        db: 'mongodb://localhost/dogsapp-dev',
         root: rootPath,
         app: {
-            name: 'KidSaver Dev'
+            name: 'DogsApp'
         },
         facebook: {
             clientID: "588620564528492",
@@ -42,14 +42,14 @@ module.exports = {
         },
         jwtToken : {
             secret : '1234567',
-            expiracy : 1000*3600
+            expiracy : 1000*3600*100
         }
     },
     production: {
-        db: 'mongodb://localhost/kid-saver',
+        db: 'mongodb://hlandao:hlbbxp12@ds049558.mongolab.com:49558/heroku_app18487179',
         root: rootPath,
         app: {
-            name: 'KidSaver'
+            name: 'DogsApp'
         },
         facebook: {
             clientID: "APP_ID",
@@ -64,7 +64,7 @@ module.exports = {
         },
         jwtToken : {
             secret : '1234567',
-            expiracy : 1000*3600
+            expiracy : 1000*3600*100
         }
     }
 };

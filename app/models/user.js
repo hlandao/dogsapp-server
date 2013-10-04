@@ -23,10 +23,15 @@ var UserSchema = new Schema({
     hashed_password: String,
     salt: String,
     facebook: {},
-    twitter: {},
-    github: {},
     google: {},
     role : {type : Number, default : 1},
+    dog : {
+        name : String,
+        thumbnail : String
+    },
+    loc : {type : [Number], index : '2d'},
+    locTimestamp : Date,
+    inbox : [{type: Schema.ObjectId, ref : 'User'}],
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -41,13 +46,27 @@ UserSchema.virtual('password').set(function(password) {
     return this._password;
 });
 
+// output after login/create
 UserSchema.virtual('loggedUser').get(function(){
    return {
+       _id : this._id,
        name : this.name,
        email : this.email,
        access_token : this.generateJWTToken()
    }
 });
+
+// public profile
+UserSchema.virtual('profile').get(function(){
+    return {
+        _id : this._id,
+        name : this.name,
+        email : this.email,
+        dog : this.dog,
+        loc : this.loc
+    }
+});
+
 
 /**
  * Validations
@@ -84,11 +103,15 @@ UserSchema.path('hashed_password').validate(function(hashed_password) {
 UserSchema.pre('save', function(next) {
     if (!this.isNew) return next();
 
-    if (!validatePresenceOf(this.password) && authTypes.indexOf(this.provider) === -1)
+    if (!validatePresenceOf(this.password))
         next(new Error('Invalid password'));
     else
         next();
 });
+
+
+
+
 
 /**
  * Methods
@@ -150,6 +173,68 @@ UserSchema.methods = {
         return {
             token : jwt.encode(tokenObject, tokenSecret),
             expiredAt : tokenObject.expiredAt
+        }
+    },
+
+
+    /**
+     * set new user location and update location timestamp
+     * @param loc
+     * @param done
+     */
+    setLocation : function(loc, done){
+        if(!loc) return done('no location provided');
+
+        this.loc = loc;
+        this.locTimestamp = Date.now();
+        this.save(done);
+    },
+
+
+    /**
+     * find users who near the user or near a specific location
+     * @param params (loc[optional], locTimeout[optional], maxDistance[optional])
+     * @param done
+     * @returns {*}
+     */
+    findNear : function(params, done){
+        var self = this;
+        params = _.extend({
+            oldTimeout : 1000 * 60 * 9000,
+            maxDistance : 1,
+            loc : self.loc
+        }, params);
+
+        var oldDate = Date.now() - params.oldTimeout;
+
+        return this.model('User').find({loc: { $nearSphere: params.loc, $maxDistance: params.maxDistance}, locTimestamp : {$gt: oldDate}, _id: {$ne : this._id}}, function(err, users){
+            if(err) return done && done(err);
+            var profiles = _.map(users, function(_user){
+                return _user.profile;
+            });
+
+            done && done (null, profiles);
+
+
+        });
+    },
+
+
+    /**
+     * add message to inbox (push or update the position of the sender's id in the inbox array
+     * @param message
+     */
+    addToInbox : function(user, done){
+        var userId = user._id;
+        if(!userId) return done && done('cannot add to inbox, no user id');
+        var index = this.inbox.indexOf(userId);
+        if(index === -1){
+            this.inbox.unshift(userId);
+            this.save(done);
+        }else{
+            this.inbox.splice(index,1);
+            this.inbox.unshift(userId);
+            this.save(done);
         }
     }
 };
