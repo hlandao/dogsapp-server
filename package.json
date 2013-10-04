@@ -31,7 +31,8 @@
     "mean-logger": "latest",
     "jwt-simple": "latest",
     "bower": "latest",
-    "googleplaces": "latest"
+    "googleplaces": "latest",
+    "forever" : "latest"
   },
   "devDependencies": {
     "supertest": "latest",
