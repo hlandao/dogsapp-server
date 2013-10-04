@@ -30,13 +30,14 @@
     "view-helpers": "latest",
     "mean-logger": "latest",
     "jwt-simple": "latest",
+    "bower": "latest",
     "googleplaces": "latest"
   },
   "devDependencies": {
     "supertest": "latest",
     "should": "latest",
     "mocha": "latest",
-    "bower": "latest",
+
     "grunt": "~0.4.1",
     "grunt-contrib-less": "~0.7.0",
     "grunt-contrib-jade": "latest",
