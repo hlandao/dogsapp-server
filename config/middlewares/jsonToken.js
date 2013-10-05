@@ -8,6 +8,7 @@ module.exports = function(){
         var property = req._passport.instance._userProperty || 'user';
         var tokenSecret = config.jwtToken.secret;
 
+        console.log('req.headers.access_token',req.headers.access_token);
         if(req[property]) return next();
         if(req.headers.access_token){
             var tokenObject = jwt.decode(req.headers.access_token, tokenSecret);
