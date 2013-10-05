@@ -89,6 +89,7 @@ exports.create = function(req, res) {
         getNewUserThumbnail(base64Image, function(err, imageUrl){
             if(err) return res.send(500,  {error : 'cannot upload thumbnail'});
 
+            user.dog.thumbnail = imageUrl;
             user.save(function(err) {
                 if (err) {
                     console.log('err',err);
