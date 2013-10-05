@@ -87,6 +87,7 @@ exports.create = function(req, res) {
         if(err) return res.send(500, {error : 'cannot fetch users'});
 
         getNewUserThumbnail(base64Image, function(err, imageUrl){
+            console.log('error upload image',err);
             if(err) return res.send(500,  {error : 'cannot upload thumbnail'});
 
             user.dog.thumbnail = imageUrl;
@@ -132,19 +133,22 @@ var getNewUserThumbnail = function(base64Image, done){
  * @param done
  */
 var uploadBase64 = function(base64Image, filename, done){
+    console.log('base64Image',base64Image);
     filename = filename || generateFilename('anon');
     var buf = new Buffer(base64Image.replace(/^data:image\/\w+;base64,/, ""),'base64');
 
     var req = knoxClient.put('/images/'+filename, {
         'Content-Length': buf.length,
-        'Content-Type':'image/png'
+        'Content-Type':'image/png',
+        'x-amz-acl': 'public-read'
     });
 
     req.on('response', function(res){
             if (res.statusCode === 200){
                 done && done(null, req.url);
             }else{
-                done && done('Error uploading image');
+                console.log(res.error);
+                done && done('Error uploading image : ' + res.statusCode);
             }
         }
     );
