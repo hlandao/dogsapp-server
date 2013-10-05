@@ -32,13 +32,14 @@
     "jwt-simple": "latest",
     "bower": "latest",
     "googleplaces": "latest",
-    "forever" : "latest"
+    "forever": "latest",
+    "knox": "~0.8.6",
+    "randomstring": "~1.0.2"
   },
   "devDependencies": {
     "supertest": "latest",
     "should": "latest",
     "mocha": "latest",
-
     "grunt": "~0.4.1",
     "grunt-contrib-less": "~0.7.0",
     "grunt-contrib-jade": "latest",

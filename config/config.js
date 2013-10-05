@@ -21,6 +21,11 @@ module.exports = {
         jwtToken : {
             secret : '1234567',
             expiracy : 1000*3600
+        },
+        S3 : {
+            key: 'AKIAJDXTJOOO2O5GAHHA',
+            secret: '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',
+            bucket: 'dogsapp'
         }
     },
     test: {
@@ -65,6 +70,11 @@ module.exports = {
         jwtToken : {
             secret : '1234567',
             expiracy : 1000*3600*100
+        },
+        S3 : {
+            key: 'AKIAJDXTJOOO2O5GAHHA',
+            secret: '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',
+            bucket: 'dogsapp'
         },
         allowedDomains : ['http://localhost:8000']
     }

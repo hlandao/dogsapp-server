@@ -6,7 +6,15 @@ var mongoose = require('mongoose'),
     IM = mongoose.model('IM'),
     _ = require('underscore'),
     async = require('async'),
-    passport = require('passport');
+    passport = require('passport'),
+    env = process.env.NODE_ENV || 'development',
+    config = require('../../config/config')[env];
+    knox = require('knox'),
+    randomstring = require("randomstring");
+
+
+var knoxClient = knox.createClient(config.S3);
+
 
 /**
  * Auth callback
@@ -66,6 +74,7 @@ exports.all = function(req,res,next){
  */
 exports.create = function(req, res) {
     var user = new User(req.body);
+    var base64Image = req.body.base64Image;
 
     user.provider = 'local';
     // override use role if not admin
@@ -74,26 +83,85 @@ exports.create = function(req, res) {
     }
 
 
-    User.find({}, function(err, users){
-       if(!users && !err){
-          user.role=2;
-       }
-        user.save(function(err) {
-            if (err) {
-                console.log('err',err);
-                return res.send(400, {error : err});
-            }else{
+    User.find({email : user.email}, function(err, users){
+        if(err) return res.send(500, {error : 'cannot fetch users'});
 
-                return req.login(user, function (err) {
-                    if (err) return next(err);
-                    return res.send(user.loggedUser);
-                });
+        getNewUserThumbnail(base64Image, function(err, imageUrl){
+            if(err) return res.send(500,  {error : 'cannot upload thumbnail'});
 
-            }
+            user.save(function(err) {
+                if (err) {
+                    console.log('err',err);
+                    return res.send(400, {error : err});
+                }else{
+
+                    return req.login(user, function (err) {
+                        if (err) return next(err);
+                        return res.send(user.loggedUser);
+                    });
+
+                }
+
+            });
+
 
         });
 
     });
+};
+
+
+/**
+ * upload base64image to server OR return the default
+ * @param base64Image
+ * @param done
+ */
+var defaultThumbnailUrl = "http://icons.iconarchive.com/icons/turbomilk/zoom-eyed-creatures/256/dog-icon.png";
+var getNewUserThumbnail = function(base64Image, done){
+    if(!base64Image) return done && done(null, defaultThumbnailUrl);
+
+    var filename = generateFilename('th_','png');
+    uploadBase64(base64Image,filename, done);
+};
+
+/**
+ * upload a base64 image to S3 and return the uploaded  image url
+ * @param base64Image
+ * @param filename
+ * @param done
+ */
+var uploadBase64 = function(base64Image, filename, done){
+    filename = filename || generateFilename('anon');
+    var buf = new Buffer(base64Image.replace(/^data:image\/\w+;base64,/, ""),'base64');
+
+    var req = knoxClient.put('/images/'+filename, {
+        'Content-Length': buf.length,
+        'Content-Type':'image/png'
+    });
+
+    req.on('response', function(res){
+            if (res.statusCode === 200){
+                done && done(null, req.url);
+            }else{
+                done && done('Error uploading image');
+            }
+        }
+    );
+
+    req.end(buf)
+
+};
+
+
+/**
+ * generate random file name
+ * @param prefix
+ * @param suffix
+ * @returns {string}
+ */
+var generateFilename = function(prefix,suffix){
+    prefix = prefix || "";
+   return prefix + randomstring.generate(5) + '.' + suffix;
 };
 
 /**
@@ -218,6 +286,8 @@ exports.aroundMe = function(req, res){
 exports.sendIM = function(req, res){
     var message = new IM(req.body);
     message.from = req.user._id;
+
+    console.log('message,message',message);
 
     User.findOne({_id : message.to}, function(err, toUser){
         if(err){
